@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/query/tasks")
+@RequestMapping("/api/v1/tasks")
 public class TaskController {
 
   private final TaskRepository repository;
@@ -30,7 +30,18 @@ public class TaskController {
   public Page<TaskEntity> list(
       @RequestParam(required = false) String assignee,
       @RequestParam(required = false) String status,
-      @PageableDefault(size = 20) Pageable pageable) {
+      @RequestParam(required = false) String processInstanceId,
+      @RequestParam(required = false) String processDefinitionKey,
+      @PageableDefault(size = 50) Pageable pageable) {
+    if (processInstanceId != null) {
+      return repository.findByProcessInstanceId(processInstanceId, pageable);
+    }
+    if (processDefinitionKey != null && status != null) {
+      return repository.findByProcessDefinitionKeyAndStatus(processDefinitionKey, status, pageable);
+    }
+    if (processDefinitionKey != null) {
+      return repository.findByProcessDefinitionKey(processDefinitionKey, pageable);
+    }
     if (assignee != null && status != null) {
       return repository.findByAssigneeAndStatus(assignee, status, pageable);
     }
@@ -46,9 +57,13 @@ public class TaskController {
   @GetMapping("/my")
   public Page<TaskEntity> myTasks(
       @AuthenticationPrincipal Jwt jwt,
-      @PageableDefault(size = 20) Pageable pageable) {
+      @RequestParam(required = false, defaultValue = "CREATED,ASSIGNED") String statuses,
+      @PageableDefault(size = 50) Pageable pageable) {
     String username = jwt.getClaimAsString("preferred_username");
-    return repository.findByAssigneeAndStatus(username, "ASSIGNED", pageable);
+    if (statuses.contains(",")) {
+      return repository.findByAssigneeAndStatusIn(username, List.of(statuses.split(",")), pageable);
+    }
+    return repository.findByAssigneeAndStatus(username, statuses, pageable);
   }
 
   @GetMapping("/{taskId}")

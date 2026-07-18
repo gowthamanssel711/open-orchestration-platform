@@ -1,7 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { AuthProvider, AuthGuard, createKeycloakInstance, useAuth } from '@oop/auth';
 import { MyTasksPage } from './pages/MyTasksPage';
 import { AllTasksPage } from './pages/AllTasksPage';
+import { TaskDetailPage } from './pages/TaskDetailPage';
+import { ProcessInstancesPage } from './pages/ProcessInstancesPage';
+
+const keycloak = createKeycloakInstance({ clientId: 'tasklist-ui' });
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,10 +20,12 @@ const queryClient = new QueryClient({
 function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { path: '/', label: 'My Tasks' },
     { path: '/all', label: 'All Tasks' },
+    { path: '/instances', label: 'Instances' },
   ];
 
   return (
@@ -43,11 +50,23 @@ function AppLayout() {
             </button>
           ))}
         </nav>
+        <div className="border-t border-gray-100 px-4 py-3">
+          <p className="text-sm font-medium text-gray-700">{user?.username}</p>
+          <p className="text-xs text-gray-400">{user?.email}</p>
+          <button
+            onClick={logout}
+            className="mt-2 text-xs text-red-600 hover:text-red-800"
+          >
+            Logout
+          </button>
+        </div>
       </aside>
       <main className="flex-1 overflow-auto p-6">
         <Routes>
           <Route path="/" element={<MyTasksPage />} />
           <Route path="/all" element={<AllTasksPage />} />
+          <Route path="/instances" element={<ProcessInstancesPage />} />
+          <Route path="/task/:taskId" element={<TaskDetailPage />} />
         </Routes>
       </main>
     </div>
@@ -56,10 +75,14 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppLayout />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <AuthProvider keycloak={keycloak}>
+      <AuthGuard>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AppLayout />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </AuthGuard>
+    </AuthProvider>
   );
 }

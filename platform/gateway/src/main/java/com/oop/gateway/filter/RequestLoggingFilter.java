@@ -25,14 +25,25 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
         request.getURI().getPath(),
         request.getRemoteAddress());
 
-    return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-      long duration = System.currentTimeMillis() - startTime;
-      log.info("Response: {} {} -> {} ({}ms)",
-          request.getMethod(),
-          request.getURI().getPath(),
-          exchange.getResponse().getStatusCode(),
-          duration);
-    }));
+    return chain.filter(exchange)
+        .doOnSuccess(v -> {
+          long duration = System.currentTimeMillis() - startTime;
+          log.info("Response: {} {} -> {} ({}ms)",
+              request.getMethod(),
+              request.getURI().getPath(),
+              exchange.getResponse().getStatusCode(),
+              duration);
+        })
+        .doOnError(error -> {
+          long duration = System.currentTimeMillis() - startTime;
+          log.error("GATEWAY ERROR: {} {} failed after {}ms - {}: {}",
+              request.getMethod(),
+              request.getURI().getPath(),
+              duration,
+              error.getClass().getSimpleName(),
+              error.getMessage(),
+              error);
+        });
   }
 
   @Override

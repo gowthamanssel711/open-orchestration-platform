@@ -12,7 +12,7 @@ spring:
       minimum-idle: 5
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -23,30 +23,24 @@ spring:
     baseline-on-migrate: true
   cloud:
     stream:
-      kafka:
-        binder:
-          brokers: ${KAFKA_BROKERS:localhost:29092}
-          auto-create-topics: true
-          replication-factor: 1
+      default-binder: rabbit
       bindings:
         engineEventsConsumer-in-0:
-          destination: oop.engine.process.events
+          destination: engineEvents
           content-type: application/json
           group: query-service
         taskEventsConsumer-in-0:
-          destination: oop.engine.task.events
-          content-type: application/json
-          group: query-service
-        activityEventsConsumer-in-0:
-          destination: oop.engine.activity.events
-          content-type: application/json
-          group: query-service
-        variableEventsConsumer-in-0:
-          destination: oop.engine.variable.events
+          destination: taskEvents
           content-type: application/json
           group: query-service
       function:
-        definition: engineEventsConsumer;taskEventsConsumer;activityEventsConsumer;variableEventsConsumer
+        definition: engineEventsConsumer;taskEventsConsumer
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
   security:
     oauth2:
       resourceserver:

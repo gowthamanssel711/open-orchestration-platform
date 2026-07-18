@@ -16,11 +16,28 @@
     <description>CQRS read model for process and task queries</description>
 
     <dependencies>
-        <!-- Activiti Cloud Query -->
+        <!-- Spring Boot Web + JPA -->
         <dependency>
-            <groupId>org.activiti.cloud</groupId>
-            <artifactId>activiti-cloud-starter-query</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- Kafka Binder for Spring Cloud Stream -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+</dependency>
+
 
         <!-- Database -->
         <dependency>

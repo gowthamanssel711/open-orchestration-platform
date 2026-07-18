@@ -1,45 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@oop/auth';
+import { useApiClient } from '../api';
 
 interface Task {
+  id?: number;
   taskId: string;
   name: string;
-  assignee: string;
+  assignee: string | null;
   status: string;
   processInstanceId: string;
+  processDefinitionKey: string | null;
   createdAt: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
 export function MyTasksPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { apiFetch } = useApiClient();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [completingId, setCompletingId] = useState<string | null>(null);
+  const [actionId, setActionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.username) fetchMyTasks();
+  }, [user?.username]);
 
   async function fetchMyTasks() {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/query/tasks/my`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await res.json();
-      setTasks(data.content || []);
+      const data = await apiFetch(`/api/v1/tasks/my`);
+      setTasks(data.content ?? data);
+    } catch (e) {
+      console.error('Failed to fetch tasks:', e);
     } finally {
       setIsLoading(false);
     }
   }
 
   async function completeTask(taskId: string) {
-    setCompletingId(taskId);
+    setActionId(taskId);
     try {
-      await fetch(`${API_BASE}/api/v1/tasks/${taskId}/complete`, {
+      await apiFetch(`/api/v1/tasks/${taskId}/complete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
       setTasks((prev) => prev.filter((t) => t.taskId !== taskId));
+    } catch (e) {
+      console.error('Failed to complete task:', e);
     } finally {
-      setCompletingId(null);
+      setActionId(null);
+    }
+  }
+
+  async function releaseTask(taskId: string) {
+    setActionId(taskId);
+    try {
+      await apiFetch(`/api/v1/tasks/${taskId}/release`, { method: 'POST' });
+      setTasks((prev) => prev.filter((t) => t.taskId !== taskId));
+    } catch (e) {
+      console.error('Failed to release task:', e);
+    } finally {
+      setActionId(null);
     }
   }
 
@@ -80,21 +102,35 @@ export function MyTasksPage() {
               className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-5 py-4"
             >
               <div>
-                <h3 className="font-medium text-gray-900">{task.name}</h3>
+                <button
+                  onClick={() => navigate(`/task/${task.taskId}`)}
+                  className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {task.name || task.taskId}
+                </button>
                 <p className="mt-0.5 text-sm text-gray-500">
-                  Process: {task.processInstanceId.substring(0, 8)}...
+                  Process: <span className="font-mono">{task.processInstanceId?.substring(0, 8)}...</span>
                 </p>
                 <p className="text-xs text-gray-400">
-                  Created: {new Date(task.createdAt).toLocaleString()}
+                  Created: {task.createdAt ? new Date(task.createdAt).toLocaleString() : '—'}
                 </p>
               </div>
-              <button
-                onClick={() => completeTask(task.taskId)}
-                disabled={completingId === task.taskId}
-                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-              >
-                {completingId === task.taskId ? 'Completing...' : 'Complete'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => completeTask(task.taskId)}
+                  disabled={actionId === task.taskId}
+                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                >
+                  {actionId === task.taskId ? '...' : 'Complete'}
+                </button>
+                <button
+                  onClick={() => releaseTask(task.taskId)}
+                  disabled={actionId === task.taskId}
+                  className="rounded-md bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Release
+                </button>
+              </div>
             </div>
           ))}
         </div>

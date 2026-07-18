@@ -1,0 +1,58 @@
+{
+  "components": [
+    {
+      "label": "Order ID",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1",
+        "columns": null
+      },
+      "id": "Field_orderId",
+      "key": "orderId",
+      "disabled": true
+    },
+    {
+      "label": "Tracking Number",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_2",
+        "columns": null
+      },
+      "id": "Field_tracking",
+      "key": "trackingNumber",
+      "disabled": true
+    },
+    {
+      "label": "I confirm the order has been delivered",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_3",
+        "columns": null
+      },
+      "id": "Field_confirm",
+      "key": "deliveryConfirmed",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Delivery Notes",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_4",
+        "columns": null
+      },
+      "id": "Field_notes",
+      "key": "deliveryNotes"
+    }
+  ],
+  "type": "default",
+  "id": "confirm-delivery",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.42.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.24.0",
+  "schemaVersion": 19
+}

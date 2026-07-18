@@ -20,5 +20,13 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
   Page<TaskEntity> findByAssigneeAndStatus(String assignee, String status, Pageable pageable);
 
+  Page<TaskEntity> findByAssigneeAndStatusIn(String assignee, List<String> statuses, Pageable pageable);
+
+  Page<TaskEntity> findByProcessInstanceId(String processInstanceId, Pageable pageable);
+
+  Page<TaskEntity> findByProcessDefinitionKey(String processDefinitionKey, Pageable pageable);
+
+  Page<TaskEntity> findByProcessDefinitionKeyAndStatus(String processDefinitionKey, String status, Pageable pageable);
+
   List<TaskEntity> findByProcessInstanceId(String processInstanceId);
 }

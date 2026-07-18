@@ -1,0 +1,79 @@
+{
+  "components": [
+    {
+      "label": "Order ID",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1",
+        "columns": null
+      },
+      "id": "Field_orderId",
+      "key": "orderId",
+      "disabled": true
+    },
+    {
+      "label": "Customer Name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_2",
+        "columns": null
+      },
+      "id": "Field_customer",
+      "key": "customerName",
+      "disabled": true
+    },
+    {
+      "label": "Order Amount",
+      "type": "number",
+      "layout": {
+        "row": "Row_3",
+        "columns": null
+      },
+      "id": "Field_amount",
+      "key": "orderAmount",
+      "disabled": true
+    },
+    {
+      "label": "Review Notes",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_4",
+        "columns": null
+      },
+      "id": "Field_notes",
+      "key": "reviewNotes",
+      "validate": {
+        "required": true,
+        "minLength": 5
+      }
+    },
+    {
+      "label": "Decision",
+      "type": "select",
+      "layout": {
+        "row": "Row_5",
+        "columns": null
+      },
+      "id": "Field_decision",
+      "key": "reviewDecision",
+      "valuesExpression": null,
+      "values": [
+        { "label": "Approve", "value": "approved" },
+        { "label": "Reject", "value": "rejected" },
+        { "label": "Needs More Info", "value": "pending" }
+      ],
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "review-order",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.42.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.24.0",
+  "schemaVersion": 19
+}

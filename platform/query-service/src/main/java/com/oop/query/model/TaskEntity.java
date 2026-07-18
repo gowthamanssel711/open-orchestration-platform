@@ -35,6 +35,9 @@ public class TaskEntity {
   @Column(name = "assignee")
   private String assignee;
 
+  @Column(name = "form_key")
+  private String formKey;
+
   @Column(name = "candidate_groups")
   private String candidateGroups;
 
@@ -107,6 +110,14 @@ public class TaskEntity {
 
   public void setAssignee(String assignee) {
     this.assignee = assignee;
+  }
+
+  public String getFormKey() {
+    return formKey;
+  }
+
+  public void setFormKey(String formKey) {
+    this.formKey = formKey;
   }
 
   public String getCandidateGroups() {

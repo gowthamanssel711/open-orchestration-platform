@@ -89,6 +89,14 @@
         }
       ],
       "realmRoles": ["user"]
+    },
+    {
+      "username": "service-account-activiti-keycloak",
+      "enabled": true,
+      "serviceAccountClientId": "activiti-keycloak",
+      "clientRoles": {
+        "realm-management": ["view-users", "query-users", "query-groups", "view-realm"]
+      }
     }
   ],
   "clients": [
@@ -136,6 +144,30 @@
       "serviceAccountsEnabled": true,
       "directAccessGrantsEnabled": true,
       "protocol": "openid-connect"
+    },
+    {
+      "clientId": "activiti-keycloak",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "activiti-keycloak-secret",
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["web-origins", "profile", "roles", "email"],
+      "protocolMappers": [
+        {
+          "name": "Client Host",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usersessionmodel-note-mapper",
+          "config": {
+            "user.session.note": "clientHost",
+            "claim.name": "clientHost",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "groups": [

@@ -1,0 +1,80 @@
+{
+  "groups": [
+    {
+      "name": "activiti.cloud.messaging",
+      "type": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "activiti.cloud.messaging.destination-illegal-chars-regex",
+      "type": "java.lang.String",
+      "description": "Configure regex expression to use for replacement of illegal characters in the destination names. Default is [\\t\\s*#:]",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": "[\\t\\s*#:]"
+    },
+    {
+      "name": "activiti.cloud.messaging.destination-illegal-chars-replacement",
+      "type": "java.lang.String",
+      "description": "Configure replacement character for illegal characters in the destination names. Default is -",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": "-"
+    },
+    {
+      "name": "activiti.cloud.messaging.destination-prefix",
+      "type": "java.lang.String",
+      "description": "Set destination prefix to use to build destinations, i.e. prefix_destination. Default is empty string.",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": ""
+    },
+    {
+      "name": "activiti.cloud.messaging.destination-separator",
+      "type": "java.lang.String",
+      "description": "Set destination separator to use to build full destinations, i.e. prefix_destination. Default is _",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": "_"
+    },
+    {
+      "name": "activiti.cloud.messaging.destination-transformers",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Configure list of transformer functions for destination",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties"
+    },
+    {
+      "name": "activiti.cloud.messaging.destination-transformers-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable destination name transformers to apply conversion to all destination name for producers, consumers and connectors",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "activiti.cloud.messaging.destinations",
+      "type": "java.util.Map<java.lang.String,org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties$DestinationProperties>",
+      "description": "Configure destination properties to apply customization to producers and consumer channel bindings with matching destination key.",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties"
+    },
+    {
+      "name": "activiti.cloud.messaging.instance-index",
+      "type": "java.lang.Integer",
+      "description": "Configure consumer instance index for partitioned messaging. Default is 0",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "activiti.cloud.messaging.partition-count",
+      "type": "java.lang.Integer",
+      "description": "Set partition count for partitioned mode. Default is 1",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": 1
+    },
+    {
+      "name": "activiti.cloud.messaging.partitioned",
+      "type": "java.lang.Boolean",
+      "description": "Enable partitioned messaging configuration for engine events producer and consumers",
+      "sourceType": "org.activiti.cloud.common.messaging.ActivitiCloudMessagingProperties",
+      "defaultValue": false
+    }
+  ],
+  "hints": []
+}

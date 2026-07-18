@@ -4,32 +4,53 @@ spring:
   cloud:
     gateway:
       routes:
+        # Deploy endpoint → runtime bundle
+        - id: runtime-deploy
+          uri: ${RUNTIME_BUNDLE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/deploy
+            - Method=POST
+
+        # Process definitions (list) → runtime bundle
         - id: runtime-processes
           uri: ${RUNTIME_BUNDLE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/v1/processes/**,/api/v1/process-instances/**
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 50
-                redis-rate-limiter.burstCapacity: 100
+            - Path=/api/v1/processes/**
 
-        - id: query-process-instances
+        # Process instances READ → query service
+        - id: query-process-instances-read
           uri: ${QUERY_SERVICE_URL:http://localhost:8082}
           predicates:
-            - Path=/api/v1/query/**
+            - Path=/api/v1/process-instances/**
+            - Method=GET
 
+        # Process instances WRITE → runtime bundle
+        - id: runtime-process-instances-write
+          uri: ${RUNTIME_BUNDLE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/process-instances/**
+            - Method=POST,PUT,DELETE
+
+        # Tasks READ → query service
         - id: query-tasks-read
           uri: ${QUERY_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/tasks/**
             - Method=GET
 
+        # Tasks WRITE → runtime bundle
         - id: tasks-write
           uri: ${RUNTIME_BUNDLE_URL:http://localhost:8081}
           predicates:
             - Path=/api/v1/tasks/**
             - Method=POST,PUT,PATCH,DELETE
+
+        # Forms READ → runtime bundle (has DB + variables)
+        - id: forms-read
+          uri: ${RUNTIME_BUNDLE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/forms/**
+            - Method=GET
 
         - id: audit
           uri: ${AUDIT_SERVICE_URL:http://localhost:8083}

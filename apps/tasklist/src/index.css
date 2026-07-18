@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Ensure form-js elements aren't stripped by Tailwind's Preflight */
+.fjs-container *,
+.fjs-container *::before,
+.fjs-container *::after {
+  box-sizing: border-box;
+}
+
+.fjs-container input[type="text"],
+.fjs-container input[type="number"],
+.fjs-container input[type="email"],
+.fjs-container input[type="date"],
+.fjs-container textarea,
+.fjs-container select {
+  border: 1px solid #878787;
+  padding: 0.5rem;
+  border-radius: 3px;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: #fff;
+  color: #161616;
+  width: 100%;
+}
+
+.fjs-container input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+}
+
+.fjs-container input:focus,
+.fjs-container textarea:focus,
+.fjs-container select:focus {
+  outline: 2px solid #0f62fe;
+  outline-offset: -2px;
+  border-color: #0f62fe;
+}
+
+.fjs-container label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #525252;
+  margin-bottom: 0.25rem;
+}
