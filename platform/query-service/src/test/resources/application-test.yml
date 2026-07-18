@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+  cloud:
+    stream:
+      function:
+        definition: engineEventsConsumer;taskEventsConsumer;activityEventsConsumer;variableEventsConsumer
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/oop
+          jwk-set-uri: http://localhost:8180/realms/oop/protocol/openid-connect/certs
+
+logging:
+  level:
+    com.oop: DEBUG

@@ -1,0 +1,104 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: runtime-processes
+          uri: ${RUNTIME_BUNDLE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/processes/**,/api/v1/process-instances/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+
+        - id: query-process-instances
+          uri: ${QUERY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/query/**
+
+        - id: query-tasks-read
+          uri: ${QUERY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/tasks/**
+            - Method=GET
+
+        - id: tasks-write
+          uri: ${RUNTIME_BUNDLE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/tasks/**
+            - Method=POST,PUT,PATCH,DELETE
+
+        - id: audit
+          uri: ${AUDIT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/audit/**
+
+        - id: analytics
+          uri: ${ANALYTICS_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/analytics/**
+
+        - id: identity
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/v1/admin/**
+
+        - id: notifications-ws
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/ws/**
+
+        - id: notifications-graphql
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/graphql
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - AddResponseHeader=X-Request-Id, ${random.uuid}
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}
+          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}/protocol/openid-connect/certs
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.oop: DEBUG

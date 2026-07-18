@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  JAVA_VERSION: '21'
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Build
+        run: mvn clean package -DskipTests -B
+
+      - name: Run tests
+        run: mvn test -B
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build and push all service images
+        run: |
+          for SERVICE in runtime-bundle query-service audit-service analytics-service notification-service identity-service gateway; do
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --file deploy/docker/Dockerfile.java \
+              --build-arg SERVICE_NAME=$SERVICE \
+              --tag ghcr.io/${{ github.repository }}/$SERVICE:${{ steps.version.outputs.VERSION }} \
+              --tag ghcr.io/${{ github.repository }}/$SERVICE:latest \
+              --push \
+              .
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Open Orchestration Platform ${{ steps.version.outputs.VERSION }}
+
+            ### Quick Start
+            ```bash
+            git clone https://github.com/${{ github.repository }}.git
+            cd oop
+            make up
+            ```
+
+            See [Getting Started Guide](docs/guides/getting-started.md) for full setup instructions.
+
+            ### Docker Images
+            All services available at `ghcr.io/${{ github.repository }}/<service>:${{ steps.version.outputs.VERSION }}`

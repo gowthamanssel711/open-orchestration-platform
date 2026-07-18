@@ -1,0 +1,26 @@
+{
+  "name": "open-orchestration-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source process orchestration platform",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev:operate": "pnpm --filter @oop/operate dev",
+    "dev:tasklist": "pnpm --filter @oop/tasklist dev",
+    "dev:analytics": "pnpm --filter @oop/analytics dev",
+    "dev:modeler": "pnpm --filter @oop/modeler dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,css,json}\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,css,json}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

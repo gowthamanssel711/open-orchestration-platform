@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: analytics-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/oop_analytics
+    username: ${DB_USERNAME:oop}
+    password: ${DB_PASSWORD:oop-dev}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-init-sql: SET TIME ZONE 'UTC'
+      maximum-pool-size: 15
+      minimum-idle: 3
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_BROKERS:localhost:29092}
+          auto-create-topics: true
+          replication-factor: 1
+      bindings:
+        analyticsProcessEvents-in-0:
+          destination: oop.engine.process.events
+          content-type: application/json
+          group: analytics-service
+        analyticsActivityEvents-in-0:
+          destination: oop.engine.activity.events
+          content-type: application/json
+          group: analytics-service
+      function:
+        definition: analyticsProcessEvents;analyticsActivityEvents
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}
+          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}/protocol/openid-connect/certs
+
+server:
+  port: ${SERVER_PORT:8084}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.oop: DEBUG

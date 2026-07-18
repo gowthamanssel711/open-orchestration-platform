@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: notification-service
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_BROKERS:localhost:29092}
+          auto-create-topics: true
+          replication-factor: 1
+      bindings:
+        notificationProcessEvents-in-0:
+          destination: oop.engine.process.events
+          content-type: application/json
+          group: notification-service
+        notificationTaskEvents-in-0:
+          destination: oop.engine.task.events
+          content-type: application/json
+          group: notification-service
+      function:
+        definition: notificationProcessEvents;notificationTaskEvents
+  graphql:
+    graphiql:
+      enabled: true
+    websocket:
+      path: /ws/graphql
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}
+          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}/protocol/openid-connect/certs
+
+server:
+  port: ${SERVER_PORT:8085}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.oop: DEBUG

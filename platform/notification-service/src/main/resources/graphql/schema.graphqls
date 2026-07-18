@@ -1,0 +1,19 @@
+type Notification {
+    id: String!
+    type: String!
+    title: String!
+    message: String!
+    processInstanceId: String
+    taskId: String
+    userId: String
+    timestamp: String!
+}
+
+type Subscription {
+    notifications: Notification!
+    userNotifications(userId: String!): Notification!
+}
+
+type Query {
+    _placeholder: String
+}

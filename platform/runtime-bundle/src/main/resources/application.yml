@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: runtime-bundle
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/oop_runtime
+    username: ${DB_USERNAME:oop}
+    password: ${DB_PASSWORD:oop-dev}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-init-sql: SET TIME ZONE 'UTC'
+      maximum-pool-size: 20
+      minimum-idle: 5
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_BROKERS:localhost:29092}
+          auto-create-topics: true
+          replication-factor: 1
+      bindings:
+        engineEvents:
+          destination: oop.engine.process.events
+          content-type: application/json
+        taskEvents:
+          destination: oop.engine.task.events
+          content-type: application/json
+        activityEvents:
+          destination: oop.engine.activity.events
+          content-type: application/json
+        variableEvents:
+          destination: oop.engine.variable.events
+          content-type: application/json
+        signalEvents:
+          destination: oop.engine.signal.events
+          content-type: application/json
+        messageEvents:
+          destination: oop.engine.message.events
+          content-type: application/json
+        commandConsumer:
+          destination: oop.connector.integration.output
+          content-type: application/json
+          group: runtime-bundle
+        commandProducer:
+          destination: oop.connector.integration.input
+          content-type: application/json
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}
+          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:oop}/protocol/openid-connect/certs
+
+activiti:
+  cloud:
+    application:
+      name: ${spring.application.name}
+    messaging:
+      destination-transformers-enabled: false
+  security:
+    policies:
+      - name: defaultPolicy
+        match:
+          any: true
+        users:
+          - '*'
+        access: WRITE
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  tracing:
+    enabled: ${TRACING_ENABLED:false}
+
+logging:
+  level:
+    org.activiti: INFO
+    com.oop: DEBUG

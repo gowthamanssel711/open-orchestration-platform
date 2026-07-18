@@ -1,0 +1,159 @@
+{
+  "realm": "oop",
+  "enabled": true,
+  "displayName": "Open Orchestration Platform",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Full platform administrator"
+      },
+      {
+        "name": "operator",
+        "description": "Process operations - can view and manage process instances"
+      },
+      {
+        "name": "developer",
+        "description": "Process developer - can deploy and model processes"
+      },
+      {
+        "name": "user",
+        "description": "Basic user - can complete assigned tasks"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@oop.local",
+      "firstName": "Platform",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin", "operator", "developer", "user"]
+    },
+    {
+      "username": "operator",
+      "enabled": true,
+      "email": "operator@oop.local",
+      "firstName": "Process",
+      "lastName": "Operator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "operator",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["operator", "user"]
+    },
+    {
+      "username": "developer",
+      "enabled": true,
+      "email": "developer@oop.local",
+      "firstName": "Process",
+      "lastName": "Developer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "developer",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["developer", "user"]
+    },
+    {
+      "username": "user",
+      "enabled": true,
+      "email": "user@oop.local",
+      "firstName": "Task",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "operate-ui",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "tasklist-ui",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3001/*"],
+      "webOrigins": ["http://localhost:3001"],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "analytics-ui",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3002/*"],
+      "webOrigins": ["http://localhost:3002"],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "modeler-ui",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3003/*"],
+      "webOrigins": ["http://localhost:3003"],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "backend-service",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "backend-service-secret",
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "groups": [
+    {
+      "name": "platform-admins",
+      "realmRoles": ["admin"]
+    },
+    {
+      "name": "operations",
+      "realmRoles": ["operator"]
+    },
+    {
+      "name": "developers",
+      "realmRoles": ["developer"]
+    },
+    {
+      "name": "task-workers",
+      "realmRoles": ["user"]
+    }
+  ]
+}

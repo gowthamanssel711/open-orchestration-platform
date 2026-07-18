@@ -1,0 +1,316 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # INFRASTRUCTURE
+  # ============================================================
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: oop
+      POSTGRES_PASSWORD: oop-dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/docker/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oop"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  kafka:
+    image: apache/kafka:3.7.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    ports:
+      - "29092:29092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/oop_keycloak
+      KC_DB_USERNAME: oop
+      KC_DB_PASSWORD: oop-dev
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./deploy/keycloak/realm-export.json:/opt/keycloak/data/import/realm.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ============================================================
+  # PLATFORM SERVICES
+  # ============================================================
+
+  runtime-bundle:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.java
+      args:
+        SERVICE_NAME: runtime-bundle
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: oop
+      DB_PASSWORD: oop-dev
+      KAFKA_BROKERS: kafka:9092
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: oop
+      SERVER_PORT: 8080
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  query-service:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.java
+      args:
+        SERVICE_NAME: query-service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: oop
+      DB_PASSWORD: oop-dev
+      KAFKA_BROKERS: kafka:9092
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: oop
+      SERVER_PORT: 8080
+    ports:
+      - "8082:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  audit-service:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.java
+      args:
+        SERVICE_NAME: audit-service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: oop
+      DB_PASSWORD: oop-dev
+      KAFKA_BROKERS: kafka:9092
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: oop
+      SERVER_PORT: 8080
+    ports:
+      - "8083:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.java
+      args:
+        SERVICE_NAME: analytics-service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: oop
+      DB_PASSWORD: oop-dev
+      KAFKA_BROKERS: kafka:9092
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: oop
+      SERVER_PORT: 8080
+    ports:
+      - "8084:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.java
+      args:
+        SERVICE_NAME: notification-service
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: oop
+      SERVER_PORT: 8080
+    ports:
+      - "8085:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.java
+      args:
+        SERVICE_NAME: identity-service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: oop
+      DB_PASSWORD: oop-dev
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: oop
+      SERVER_PORT: 8080
+    ports:
+      - "8087:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  gateway:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.java
+      args:
+        SERVICE_NAME: gateway
+    environment:
+      RUNTIME_BUNDLE_URL: http://runtime-bundle:8080
+      QUERY_SERVICE_URL: http://query-service:8080
+      AUDIT_SERVICE_URL: http://audit-service:8080
+      ANALYTICS_SERVICE_URL: http://analytics-service:8080
+      NOTIFICATION_SERVICE_URL: http://notification-service:8080
+      IDENTITY_SERVICE_URL: http://identity-service:8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: oop
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      runtime-bundle:
+        condition: service_healthy
+      query-service:
+        condition: service_healthy
+      audit-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ============================================================
+  # FRONTEND APPLICATIONS (build with: docker compose --profile ui up)
+  # ============================================================
+
+  operate-ui:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.react
+      args:
+        APP_NAME: operate
+        VITE_API_URL: http://localhost:8080
+        VITE_KEYCLOAK_URL: http://localhost:8180
+        VITE_KEYCLOAK_REALM: oop
+        VITE_KEYCLOAK_CLIENT_ID: operate-ui
+    ports:
+      - "3000:80"
+    profiles:
+      - ui
+
+  tasklist-ui:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.react
+      args:
+        APP_NAME: tasklist
+        VITE_API_URL: http://localhost:8080
+        VITE_KEYCLOAK_URL: http://localhost:8180
+        VITE_KEYCLOAK_REALM: oop
+        VITE_KEYCLOAK_CLIENT_ID: tasklist-ui
+    ports:
+      - "3001:80"
+    profiles:
+      - ui
+
+volumes:
+  postgres-data:
